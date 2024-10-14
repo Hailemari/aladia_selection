@@ -1,0 +1,66 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  # Cypress for full-page visual regression tests
+  cypress:
+    name: Run Cypress Tests
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node-20.17.0-chrome-128.0.6613.119-1-ff-130.0-edge-128.0.2739.63-1
+      options: --user 1001
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: pnpm install
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          start: pnpm run dev
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ./cypress/downloads
+          retention-days: 30
+
+  # Chromatic for component-level visual regression tests
+  chromatic:
+    name: Run Chromatic
+    needs: cypress  # Ensures Cypress finishes before running Chromatic
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: pnpm install
+      - name: Set Git email
+        run: git config --global user.email "hailemariamkefale19@gmail.com"
+      - name: Run Chromatic
+        uses: chromaui/action@latest
+        with:
+          projectToken: chpt_c5c17c667c85e39
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+ 
+        
