@@ -60,4 +60,7 @@ jobs:
         uses: chromaui/action@latest
         with:
           projectToken: chpt_c5c17c667c85e39
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+ 
         
